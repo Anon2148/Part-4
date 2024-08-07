@@ -76,6 +76,17 @@ test.only('correct amount of notes', async () => {
   assert.strictEqual(response.body.length, listWithManyBlogs.length)
 })
 
+test.only('correct property id name', async () => {
+  const response = await api.get('/api/blogs')
+
+  const correctFormatValues = response.body.map((r) => r.id)
+  const incorrectFormatValues = response.body.map((r) => r._id)
+
+  const realIdValues = listWithManyBlogs.map((b) => b._id)
+  assert.deepStrictEqual(correctFormatValues, realIdValues)
+  assert.notDeepStrictEqual(incorrectFormatValues, realIdValues)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
