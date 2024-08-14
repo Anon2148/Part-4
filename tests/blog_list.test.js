@@ -5,61 +5,12 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 
-const listWithManyBlogs = [
-  {
-    _id: '5a422a851b54a676234d17f7',
-    title: 'React patterns',
-    author: 'Michael Chan',
-    url: 'https://reactpatterns.com/',
-    likes: 7,
-    __v: 0,
-  },
-  {
-    _id: '5a422aa71b54a676234d17f8',
-    title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-    likes: 5,
-    __v: 0,
-  },
-  {
-    _id: '5a422b3a1b54a676234d17f9',
-    title: 'Canonical string reduction',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
-    likes: 12,
-    __v: 0,
-  },
-  {
-    _id: '5a422b891b54a676234d17fa',
-    title: 'First class tests',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
-    likes: 10,
-    __v: 0,
-  },
-  {
-    _id: '5a422ba71b54a676234d17fb',
-    title: 'TDD harms architecture',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html',
-    likes: 0,
-    __v: 0,
-  },
-  {
-    _id: '5a422bc61b54a676234d17fc',
-    title: 'Type wars',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
-    likes: 2,
-    __v: 0,
-  },
-]
+const helper = require('./blog_list_helper')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
 
-  for (let blog of listWithManyBlogs) {
+  for (let blog of helper.listWithManyBlogs) {
     let blogObject = new Blog(blog)
     await blogObject.save()
   }
@@ -73,7 +24,7 @@ test('correct amount of notes', async () => {
     .expect(200)
     .expect('Content-Type', /application\/json/)
 
-  assert.strictEqual(response.body.length, listWithManyBlogs.length)
+  assert.strictEqual(response.body.length, helper.listWithManyBlogs.length)
 })
 
 test('correct property id name', async () => {
@@ -82,7 +33,7 @@ test('correct property id name', async () => {
   const correctFormatValues = response.body.map((r) => r.id)
   const incorrectFormatValues = response.body.map((r) => r._id)
 
-  const realIdValues = listWithManyBlogs.map((b) => b._id)
+  const realIdValues = helper.listWithManyBlogs.map((b) => b._id)
   assert.deepStrictEqual(correctFormatValues, realIdValues)
   assert.notDeepStrictEqual(incorrectFormatValues, realIdValues)
 })
@@ -101,11 +52,11 @@ test('a valid blog can be added', async () => {
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api.get('/api/blogs')
+  const response = await helper.blogsInDb()
 
-  const titles = response.body.map((r) => r.title)
+  const titles = response.map((r) => r.title)
 
-  assert.strictEqual(response.body.length, listWithManyBlogs.length + 1)
+  assert.strictEqual(response.length, helper.listWithManyBlogs.length + 1)
 
   assert(titles.includes('Clone wars'))
 })
@@ -128,7 +79,7 @@ test('likes should be initialized to 0', async () => {
   assert.strictEqual(likes, 0)
 })
 
-test.only('blog without title should return 400 response code', async () => {
+test('blog without title should return 400 response code', async () => {
   const newBlog = {
     author: 'Monica dominguez',
     url: 'clonewars.com/conanDoyle',
@@ -143,7 +94,7 @@ test.only('blog without title should return 400 response code', async () => {
   assert.strictEqual(response.statusCode, 400)
 })
 
-test.only('blog without url should return 400 response code', async () => {
+test('blog without url should return 400 response code', async () => {
   const newBlog = {
     title: 'Clone wars',
     author: 'Monica dominguez',
@@ -156,6 +107,20 @@ test.only('blog without url should return 400 response code', async () => {
     .expect('Content-Type', /application\/json/)
 
   assert.strictEqual(response.statusCode, 400)
+})
+
+test('blog should be correctly deleted by its id', async () => {
+  const blogsAtStart = await helper.blogsInDb()
+  const blogToDelete = blogsAtStart[0]
+
+  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+
+  const blogsAtEnd = await helper.blogsInDb()
+
+  const titles = blogsAtEnd.map((b) => b.title)
+  assert(!titles.includes(blogToDelete.title))
+
+  assert.strictEqual(blogsAtEnd.length, helper.listWithManyBlogs.length - 1)
 })
 
 after(async () => {
