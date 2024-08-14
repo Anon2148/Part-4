@@ -67,7 +67,7 @@ beforeEach(async () => {
 
 const api = supertest(app)
 
-test.only('correct amount of notes', async () => {
+test('correct amount of notes', async () => {
   const response = await api
     .get('/api/blogs')
     .expect(200)
@@ -76,7 +76,7 @@ test.only('correct amount of notes', async () => {
   assert.strictEqual(response.body.length, listWithManyBlogs.length)
 })
 
-test.only('correct property id name', async () => {
+test('correct property id name', async () => {
   const response = await api.get('/api/blogs')
 
   const correctFormatValues = response.body.map((r) => r.id)
@@ -85,6 +85,29 @@ test.only('correct property id name', async () => {
   const realIdValues = listWithManyBlogs.map((b) => b._id)
   assert.deepStrictEqual(correctFormatValues, realIdValues)
   assert.notDeepStrictEqual(incorrectFormatValues, realIdValues)
+})
+
+test.only('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'Clone wars',
+    author: 'Conan Doyle',
+    url: 'clonewars.com/conanDoyle',
+    likes: 5,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const titles = response.body.map((r) => r.title)
+
+  assert.strictEqual(response.body.length, listWithManyBlogs.length + 1)
+
+  assert(titles.includes('Clone wars'))
 })
 
 after(async () => {

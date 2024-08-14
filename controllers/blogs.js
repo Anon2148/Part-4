@@ -6,16 +6,15 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
-blogsRouter.post('/', (request, response) => {
+blogsRouter.post('/', async (request, response, next) => {
   const blog = new Blog(request.body)
 
-  if (!blog.title || !blog.author || !blog.url || !blog.likes) {
+  if (!blog.title || !blog.author || !blog.url) {
     return response.status(400).json({ error: 'malformed request' })
   }
 
-  blog.save().then((result) => {
-    response.status(201).json(result)
-  })
+  const savedBlog = await blog.save()
+  response.status(201).json(savedBlog)
 })
 
 module.exports = blogsRouter
