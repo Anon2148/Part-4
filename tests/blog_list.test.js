@@ -123,6 +123,21 @@ test('blog should be correctly deleted by its id', async () => {
   assert.strictEqual(blogsAtEnd.length, helper.listWithManyBlogs.length - 1)
 })
 
+test('blog should be updated correctly', async () => {
+  const blogsAtStart = await helper.blogsInDb()
+  const blogToUpdate = blogsAtStart[0]
+
+  const updatedBlog = { ...blogToUpdate, likes: 123 }
+
+  await api.put(`/api/blogs/${blogToUpdate.id}`).send(updatedBlog).expect(204)
+
+  const blogsAtEnd = await helper.blogsInDb()
+
+  const likesFromUpdated = blogsAtEnd[0].likes
+  assert.notStrictEqual(blogToUpdate.likes, likesFromUpdated)
+  assert.strictEqual(likesFromUpdated, updatedBlog.likes)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })

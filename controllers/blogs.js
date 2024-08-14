@@ -20,7 +20,24 @@ blogsRouter.post('/', async (request, response, next) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  const blogToDelete = await Blog.findByIdAndDelete(request.params.id)
+  await Blog.findByIdAndDelete(request.params.id)
+  response.status(204).end()
+})
+
+blogsRouter.put('/:id', async (request, response) => {
+  const body = request.body
+
+  if (!body.title || !body.url) {
+    return response.status(400).json({ error: 'malformed request' })
+  }
+
+  const blog = {
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes || 0,
+  }
+  await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
   response.status(204).end()
 })
 
