@@ -87,7 +87,7 @@ test('correct property id name', async () => {
   assert.notDeepStrictEqual(incorrectFormatValues, realIdValues)
 })
 
-test.only('a valid blog can be added', async () => {
+test('a valid blog can be added', async () => {
   const newBlog = {
     title: 'Clone wars',
     author: 'Conan Doyle',
@@ -108,6 +108,24 @@ test.only('a valid blog can be added', async () => {
   assert.strictEqual(response.body.length, listWithManyBlogs.length + 1)
 
   assert(titles.includes('Clone wars'))
+})
+
+test.only('likes should be initialized to 0', async () => {
+  const newBlog = {
+    title: 'Clone wars',
+    author: 'Monica dominguez',
+    url: 'clonewars.com/conanDoyle',
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const likes = response.body.likes
+
+  assert.strictEqual(likes, 0)
 })
 
 after(async () => {

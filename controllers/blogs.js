@@ -11,6 +11,8 @@ blogsRouter.post('/', async (request, response, next) => {
 
   if (!blog.title || !blog.author || !blog.url) {
     return response.status(400).json({ error: 'malformed request' })
+  } else if (!blog.likes) {
+    blog.likes = 0
   }
 
   const savedBlog = await blog.save()
