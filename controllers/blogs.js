@@ -9,7 +9,7 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', async (request, response, next) => {
   const blog = new Blog(request.body)
 
-  if (!blog.title || !blog.author || !blog.url) {
+  if (!blog.title || !blog.url) {
     return response.status(400).json({ error: 'malformed request' })
   } else if (!blog.likes) {
     blog.likes = 0

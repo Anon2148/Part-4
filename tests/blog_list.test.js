@@ -110,7 +110,7 @@ test('a valid blog can be added', async () => {
   assert(titles.includes('Clone wars'))
 })
 
-test.only('likes should be initialized to 0', async () => {
+test('likes should be initialized to 0', async () => {
   const newBlog = {
     title: 'Clone wars',
     author: 'Monica dominguez',
@@ -126,6 +126,36 @@ test.only('likes should be initialized to 0', async () => {
   const likes = response.body.likes
 
   assert.strictEqual(likes, 0)
+})
+
+test.only('blog without title should return 400 response code', async () => {
+  const newBlog = {
+    author: 'Monica dominguez',
+    url: 'clonewars.com/conanDoyle',
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.statusCode, 400)
+})
+
+test.only('blog without url should return 400 response code', async () => {
+  const newBlog = {
+    title: 'Clone wars',
+    author: 'Monica dominguez',
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.statusCode, 400)
 })
 
 after(async () => {
