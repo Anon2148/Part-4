@@ -7,7 +7,7 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
-blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
+blogsRouter.post('/', async (request, response) => {
   const body = request.body
   const user = request.user
 
@@ -32,29 +32,26 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   response.status(201).json(savedBlog)
 })
 
-blogsRouter.delete(
-  '/:id',
-  middleware.userExtractor,
-  async (request, response) => {
-    const blog = await Blog.findById(request.params.id)
+blogsRouter.delete('/:id', async (request, response) => {
+  const blog = await Blog.findById(request.params.id)
 
-    const user = request.user
+  const user = request.user
 
-    if (blog.user.toString() === user.id.toString()) {
-      await blog.deleteOne()
-      return response.status(204).end()
-    } else {
-      return response.status(401).json({
-        error: 'you are trying to delete a blog that does not belong to you',
-      })
-    }
+  if (blog.user.toString() === user.id.toString()) {
+    await blog.deleteOne()
+    return response.status(204).end()
+  } else {
+    return response.status(401).json({
+      error: 'you are trying to delete a blog that does not belong to you',
+    })
   }
-)
+})
 
 blogsRouter.put('/:id', async (request, response) => {
   const body = request.body
+  const user = request.user
 
-  if (!body.title || !body.url) {
+  if (!body.title || !body.url || !user) {
     return response.status(400).json({ error: 'malformed request' })
   }
 
